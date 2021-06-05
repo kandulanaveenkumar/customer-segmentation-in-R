@@ -1,0 +1,175 @@
+---
+title: "PROJECT"
+author: "KANDULA NAVEEN KUMAR - 17MIS1056"
+date: "01/05/2021"
+output: word_document
+---
+
+```{r}
+rm(list = ls())
+```
+
+```{r}
+data <- read.csv("D:\\8TH SEM\\project\\Train.csv")
+data
+```
+
+
+#Structure And Summary Of The Data
+```{r}
+str(data)
+```
+
+```{r}
+summary(data)
+```
+
+#Customer Gender Visualization
+```{r}
+gender <- table(data$Gender)
+barplot(gender,main = "Gender Comparison",xlab = "Gender",ylab = "Count",col=c("pink","lightblue"))
+
+```
+
+
+
+#Visualization of Age Distribution
+```{r}
+hist(data$Age,col = "lightblue",main = "Hitogram to show count of Age Class",xlab = "Age Class",ylab = "Frequency",labels = TRUE)
+
+```
+
+```{r}
+boxplot(data$Age,col = "#ff0066",main="Boxplot for Descriptive Analysis of Age")
+```
+
+```{r}
+library(plotrix)
+```
+
+```{r}
+pct = round(gender/sum(gender)*100)
+lbs = paste(c("Female","Male")," ",pct,"%",sep = " ")
+```
+
+
+```{r}
+pie3D(gender,labels = lbs,main="Pie Chart Showing Ratio Of Female And Male",col = c("red","orange"))
+
+```
+
+#simplify the dataset
+
+```{r}
+data <- data[,2:9]
+
+```
+
+```{r}
+summary(data)
+str(data)
+```
+
+```{r}
+unique(data$Profession)
+```
+
+
+#transforming blanks into NA's
+```{r}
+data[data==""]<-NA
+data<-data[complete.cases(data),]
+```
+
+```{r}
+library(dplyr)
+```
+
+
+```{r}
+dataset <-data %>% select_if(is.numeric)
+
+character <- data %>% select_if(is.character)
+```
+
+
+# Transforming character into numerical/dummy
+
+```{r}
+library(fastDummies)
+
+character <-dummy_cols(character,remove_most_frequent_dummy = TRUE)
+```
+
+```{r}
+#dataset <- cbind(dataset,character[6:18])
+#dataset
+```
+
+```{r}
+library(factoextra)
+```
+
+```{r}
+library(purrr)
+set.seed(123)
+iss <- function(k){
+  kmeans(dataset,k,iter.max = 100,nstart = 100,algorithm = "Lloyd")$tot.withinss
+}
+
+k.values <- 1:10
+
+iss_values <- map_dbl(k.values,iss)
+plot(k.values,iss_values,type = "b",pch=19,frame=FALSE,xlab = "Number Of Clusters K",ylab = "Total Intra Clusters Sum Of Squares",col="#1287A5")
+```
+
+```{r}
+fviz_nbclust(dataset,kmeans,method = "silhouette")
+```
+
+
+
+#Gap Statistics
+
+*For computing the gap statistics method we can utilize the clusGap function for providing gap statistic as well as standard error for a given output.
+
+
+```{r}
+library(NbClust)
+library(cluster)
+```
+
+```{r}
+set.seed(125)
+stat_gap <- clusGap(dataset,FUN=kmeans,nstart=25,K.max = 10,B=50)
+fviz_gap_stat(stat_gap)
+```
+
+```{r}
+View(dataset)
+```
+
+```{r}
+clusterK <- kmeans(dataset,10,iter.max = 100,nstart = 50,algorithm = "Lloyd")
+clusterK
+```
+
+```{r}
+pclust <- prcomp(dataset,scale. = FALSE)
+summary(pclust)
+```
+
+```{r}
+pclust$rotation[,1:2]
+```
+
+```{r}
+kCols=function(vec){cols=rainbow (length (unique (vec)))
+return (cols[as.numeric(as.factor(vec))])}
+digCluster <- clusterK$cluster 
+dignm <- as.character(digCluster)
+plot(pclust$x[,1:2],col=kCols(digCluster),pch=19,xlab = "K-Means",ylab = "Classes")
+legend("bottomleft",unique(dignm),fill = unique(kCols(digCluster)))
+```
+
+
